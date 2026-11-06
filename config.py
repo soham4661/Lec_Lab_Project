@@ -1,4 +1,4 @@
-model = "gemini-3.8-flash"
+MODEL = "gemini-3.8-flash"
 languages = ["English", "Hindi", "Hinglish"]
 levels = ["Beginner", "Intermediate", "Advanced"]
 
@@ -23,7 +23,7 @@ key_term = {
     "required": ["term", "definition"],
 }
 
-notes_schema = {
+NOTES_SCHEMA = {
     "type": "object",
     "properties": {
         "title": {"type": "string"},
@@ -36,7 +36,7 @@ notes_schema = {
 
 
 
-notes_prompt = (f"""You are notes maker having 15 yers of experience 
+NOTES_PROMPT = (f"""You are notes maker having 15 yers of experience 
 and a keen eye for detail and having a good understanding of the subject. 
 Watch this lecture video and write study notes.
 
@@ -48,3 +48,4 @@ do follow these conditions:
 - Write for a {levels} audience in {languages}.
 - Include only what is in the video. Do not add outside information.
 """)
+
