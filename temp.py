@@ -1,6 +1,6 @@
 import streamlit as st
 from config import languages,levels
-from gemini_client import get_client, extract_notes
+from gemini_client import get_client, extract_notes, make_flashcards
 from helpers import youtube_id
 
 Defaults = {
@@ -24,7 +24,18 @@ def reset_state():
     for key, value in Defaults.items():
         if key in st.session_state:
             st.session_state[key] = value
-       
+
+
+
+def flip_card():
+    st.session_state.flipped = not st.session_state.flipped 
+
+def next_card():
+    st.session_state.card_pos = st.session_state.card_pos + 1
+    st.session_state.flipped = False
+
+
+            
 
 
 st.set_page_config(
@@ -290,15 +301,46 @@ else:
         st.header(st.session_state.notes["title"])
         st.write(st.session_state.notes["summary"])
 
-    tab1, tab2, tab3 = st.tabs(["Flashcards", "Quiz", "Usage"])
+def show_flashcards_tab(client, count, language):
+    cards = st.session_state.cards
 
+    if cards is None:
+          if st.button("Generate flashcards"):
+                with st.spinner("Making flashcards..."):
+                    st.session_state.cards = make_flashcards(client, st.session_state.notes, count, language, st.session_state.log)
+                st.rerun()
+                return
+
+    card = cards[st.session_state.card_pos % len(cards)]
+    number = st.session_state.card_pos % len(cards) + 1
+
+    if st.session_state.flipped:
+            label = "ANSWER"
+            text = card["back"]
+    else:
+        label = "QUESTION"
+        text = card["front"]
+        st.caption(f"Card {number} of {len(cards)} · {label}")
+        st.info(text)
+
+    col1, col2 = st.columns(2)
+    with col1:
+            st.button("Flip", on_click=flip_card)
+    with col2:
+            st.button("Next", on_click=next_card)
+
+    
+
+
+    tab1, tab2, tab3 = st.tabs(["Flashcards", "Quiz", "Usage"])
     with tab1:
-        st.write("Coming soon")
+        show_flashcards_tab(client, flashcard_count, language)
     with tab2:
         st.write("Coming soon")
     with tab3:
         st.write("Coming soon")
 
-            
+
+
 
     

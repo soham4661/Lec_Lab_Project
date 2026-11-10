@@ -4,7 +4,7 @@ import time
 from tracemalloc import start
 from dotenv import load_dotenv
 from google import genai
-from config import MODEL, languages, levels, NOTES_PROMPT, NOTES_SCHEMA
+from config import FLASHCARD_PROMPT, FLASHCARD_SCHEMA, MODEL, languages, levels, NOTES_PROMPT, NOTES_SCHEMA
 
 
 def get_client():
@@ -57,7 +57,12 @@ def extract_notes(client, youtube_link, level, language, log):
         {"type": "text", "text": prompt},
     ]
     return call_gemini(client, input_list, log, "notes", NOTES_SCHEMA) 
-   
+
+def make_flashcards(client, notes, count, language, log):
+    notes_text = json.dumps(notes)
+    prompt = FLASHCARD_PROMPT.format(count=count, language=language, notes=notes_text)
+    result = call_gemini(client, prompt, log, "flashcards", FLASHCARD_SCHEMA)
+    return result["cards"]
 
 
 

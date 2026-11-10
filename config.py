@@ -49,3 +49,34 @@ do follow these conditions:
 - Include only what is in the video. Do not add outside information.
 """)
 
+FLASHCARD_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "cards": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "front": {"type": "string"},
+                    "back": {"type": "string"},
+                },
+                "required": ["front", "back"],
+            },
+        },
+    },
+    "required": ["cards"],
+}
+
+FLASHCARD_PROMPT = """You are a experienced,study flashcard maker. Use notes given below only to make flashcards for user.
+
+Instructions:
+- Make exactly {count} flashcards.
+- Write them in {language}.
+- The front is a short question.
+- The back is a 1 to 2 line answer.
+- Use only the information in the notes, Do not add outside facts.
+
+Notes:
+{notes}
+"""
+
