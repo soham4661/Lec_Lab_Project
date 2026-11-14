@@ -4,7 +4,7 @@ import time
 from tracemalloc import start
 from dotenv import load_dotenv
 from google import genai
-from config import FLASHCARD_PROMPT, FLASHCARD_SCHEMA, MODEL, languages, levels, NOTES_PROMPT, NOTES_SCHEMA
+from config import FLASHCARD_PROMPT, FLASHCARD_SCHEMA, MODEL, QUIZ_SCHEMA, languages, levels, NOTES_PROMPT, NOTES_SCHEMA, QUIZ_PROMPT, QUIZ_SCHEMA
 
 
 def get_client():
@@ -64,6 +64,11 @@ def make_flashcards(client, notes, count, language, log):
     result = call_gemini(client, prompt, log, "flashcards", FLASHCARD_SCHEMA)
     return result["cards"]
 
+def make_quiz(client, notes, count, language, log):
+    notes_text = json.dumps(notes)
+    prompt = QUIZ_PROMPT.format(count=count, language=language, notes=notes_text)
+    result = call_gemini(client, prompt, log, "quiz", QUIZ_SCHEMA)
+    return result["questions"]
 
 
 

@@ -80,3 +80,36 @@ Notes:
 {notes}
 """
 
+QUIZ_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "questions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "question": {"type": "string"},
+                    "options": {"type": "array", "items": {"type": "string"}},
+                    "correct_index": {"type": "integer"},
+                    "explanation": {"type": "string"},
+                },
+                "required": ["question", "options", "correct_index", "explanation"],
+            },
+        },
+    },
+    "required": ["questions"],
+}
+
+QUIZ_PROMPT =  """You are a experienced,study quiz maker. Use notes given below to make quiz for user.
+
+Instructions:
+- Make exactly {count} questions.
+- Write questions in {language}.
+- Each question exactly have 4 options with one correct answer.
+- Write a short 1 to 2 line explanation for each question.
+- Use only the information in the notes, Do not add outside facts.
+- 
+
+Notes:
+{notes}
+"""

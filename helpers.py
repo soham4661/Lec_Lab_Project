@@ -19,12 +19,55 @@ def youtube_id(url):
     else:
         return None
 
-print(youtube_id("https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
-print(youtube_id("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=30s"))
-print(youtube_id("https://youtu.be/dQw4w9WgXcQ?si=abc123"))
-print(youtube_id("https://www.youtube.com/shorts/dQw4w9WgXcQ"))
-print(youtube_id("https://example.com/video"))
-print(youtube_id(""))
+
+
+#code for good quizgeneration:
+
+def validate_quiz(questions):
+    good_questions = []
+    problems = []
+
+    for number, q in enumerate(questions, start=1):
+        if len(q["options"]) != 4:
+            problems.append(f"Q{number}: has {len(q['options'])} options (expected 4)")
+            continue
+
+        if q["correct_index"] not in [0, 1, 2, 3]:
+            problems.append(f"Q{number}: correct_index {q['correct_index']} is out of range")
+            continue
+
+        cleaned = set(o.strip() for o in q["options"])
+        if len(cleaned) < 4:
+            problems.append(f"Q{number}: has same or empty options")
+            continue
+
+        good_questions.append(q)
+
+    return good_questions, problems
+
+# Grade_Quiz
+def grade_quiz(questions,answers):
+    score = 0
+    results = []
+
+    for question,answer in zip(questions,answers):
+        correct = question["options"][question["correct_index"]]
+
+        if answer == correct:
+            score = score + 1
+            is_correct = True
+        else:
+            is_correct = False
+
+        results.append({"chosen": answer, "correct": correct, "is_correct": is_correct})
+
+    return score, results
+
+
+
+
+       
+
 
 
 #def youtube_id(url):
