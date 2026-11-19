@@ -63,6 +63,28 @@ def grade_quiz(questions,answers):
 
     return score, results
 
+# Error Hnadling
+def friendly_error(error):
+    msg = str(error).lower()
+
+    if "429" in msg or "quota" in msg or "resource_exhausted" in msg:
+        return "Too many requests. Wait a minute and  try again."
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
