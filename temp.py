@@ -1,5 +1,3 @@
-from unittest import result
-
 import streamlit as st
 from config import languages,levels
 from gemini_client import get_client, extract_notes, make_flashcards, make_quiz
@@ -20,12 +18,19 @@ Defaults = {
 def init_state():
     for key, value in Defaults.items():
         if key not in st.session_state:
-            st.session_state[key] = value
+            if isinstance(value, list):
+                st.session_state[key] = value.copy()
+            else:
+                st.session_state[key] = value
+
 
 def reset_state():
     for key, value in Defaults.items():
-        if key in st.session_state:
+        if isinstance(value, list):
+            st.session_state[key] = value.copy()
+        else:
             st.session_state[key] = value
+    st.rerun()
 
 
 

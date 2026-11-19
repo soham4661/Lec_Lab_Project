@@ -1,8 +1,9 @@
 
+from Training_Python_Beginner.Lec_Labs_prj.temp import retake_quiz
 import streamlit as st
 from config import languages,levels
-from gemini_client import get_client, extract_notes, make_flashcards
-from helpers import youtube_id
+from gemini_client import get_client, extract_notes, make_flashcards, make_quiz
+from helpers import grade_quiz, youtube_id, validate_quiz
 from config import FLASHCARD_PROMPT, FLASHCARD_SCHEMA, MODEL, NOTES_PROMPT, NOTES_SCHEMA
 
 Defaults = {
@@ -20,12 +21,20 @@ Defaults = {
 def init_state():
     for key, value in Defaults.items():
         if key not in st.session_state:
-            st.session_state[key] = value
+            if isinstance(value, list):
+                st.session_state[key] = value.copy()
+            else:
+                st.session_state[key] = value
+
 
 def reset_state():
     for key, value in Defaults.items():
-        if key in st.session_state:
+        if isinstance(value, list):
+            st.session_state[key] = value.copy()
+        else:
             st.session_state[key] = value
+    st.rerun()
+
 
 def flip_card():
     st.session_state.flipped = not st.session_state.flipped 
@@ -330,16 +339,84 @@ def show_flashcards_tab(client, count, language):
     with col2:
             st.button("Next", on_click=next_card)
 
-    
+def show_quiz_tab(client, count, language):
+    quiz = st.session_state.quiz
 
+    # 1. Generate part
+    if quiz is None:
+        if st.button("Generate quiz"):
+            with st.spinner("Making quiz..."):
+                questions = make_quiz(client, st.session_state.notes, count, language, st.session_state.log)
+                good_questions, problems = validate_quiz(questions)
+                st.session_state.quiz = good_questions
+                st.session_state.quiz_problems = problems
+            st.rerun()
+        return
+
+    # 2. Warning if some questions were dropped
+    if st.session_state.quiz_problems:
+        st.warning(f"{len(st.session_state.quiz_problems)} question(s) were dropped because they were broken.")
+
+    # 3. The form
+    with st.form("quiz_form"):
+        for i, q in enumerate(quiz):
+            st.radio(q["question"], q["options"], index=None, key=f"q_{i}")
+        submitted = st.form_submit_button("Submit answers")
+
+    # 4. On submit
+    if submitted:
+        st.session_state.quiz_submitted = True
+
+    #5. Show results if submitted
+    if st.session_state.quiz_submitted:
+        answers = [st.session_state.get(f"q_{i}") for i in range(len(quiz))]
+        score, results = grade_quiz(quiz, answers)
+
+        for i, (q, result) in enumerate(zip(quiz, results),start =1):
+            if result["is_correct"]:
+                st.success(f"Q{i}: Correct")
+            else:
+                st.error(f"Q{i}: Wrong. Correct answer: {result['correct']}")
+                st.info(q["explanation"])
+
+        percent = round(score / len(quiz) * 100)
+        st.metric("Score", f"{score} / {len(quiz)} · {percent}%")
+        st.button("Retake quiz", on_click=retake_quiz)
+
+
+#Main APP Code.
+st.set_page_config(page_title="LectureLab", page_icon="🎓", layout="wide")
+init_state()
+client = get_client()
+
+language = st.sidebar.selectbox("Language", languages)
+level = st.sidebar.selectbox("Level", levels)
+flashcard_count = st.sidebar.slider("Flashcards", 5, 20, 10)
+quiz_count = st.sidebar.slider("Quiz questions", 3, 15, 5)
+if st.sidebar.button("New video"):
+    reset_state()
+
+if st.session_state.notes is None:
+    show_input_screen(client, level, language)
+else:
+    left, right = st.columns(2)
+
+    with left:
+        st.video(st.session_state.link)
+
+    with right:
+        st.header(st.session_state.notes["title"])
+        st.write(st.session_state.notes["summary"])
 
     tab1, tab2, tab3 = st.tabs(["Flashcards", "Quiz", "Usage"])
+
     with tab1:
         show_flashcards_tab(client, flashcard_count, language)
     with tab2:
         st.write("Coming soon")
     with tab3:
         st.write("Coming soon")
+
 
 
     
