@@ -1,7 +1,7 @@
 import streamlit as st
 from config import languages,levels
 from gemini_client import get_client, extract_notes, make_flashcards, make_quiz
-from helpers import grade_quiz, youtube_id, validate_quiz
+from helpers import grade_quiz, youtube_id, validate_quiz, friendly_error
 
 Defaults = {
     "link": None,
@@ -286,21 +286,31 @@ def show_input_screen(client, level, language):
         clean_link = "https://www.youtube.com/watch?v=" + video_id
         st.session_state.link = clean_link
 
-        with st.spinner("Watching the lecture..."):
-            notes = extract_notes(client, clean_link, level, language, st.session_state.log)
-            st.session_state.notes = notes
-
+        try:
+            with st.spinner("Watching the lecture..."):
+                notes = extract_notes(client, clean_link, level, language, st.session_state.log)
+                st.session_state.notes = notes
+        except Exception as e:
+            st.session_state.link = None
+            st.error(friendly_error(e))
+            return
         st.rerun()
+
 
 def show_flashcards_tab(client, count, language):
     cards = st.session_state.cards
 
     if cards is None:
         if st.button("Generate flashcards"):
-            with st.spinner("Making flashcards..."):
-                st.session_state.cards = make_flashcards(
-                    client, st.session_state.notes, count, language, st.session_state.log
-                )
+            try:
+                with st.spinner("Making flashcards..."):
+                    st.session_state.cards = make_flashcards(
+                        client, st.session_state.notes, count, language, st.session_state.log
+                    )
+                st.rerun()
+            except Exception as e:
+                st.error(friendly_error(e))
+                return
             st.rerun()
         return
 
@@ -329,11 +339,25 @@ def show_quiz_tab(client, count, language):
     # 1. Generate part
     if quiz is None:
         if st.button("Generate quiz"):
-            with st.spinner("Making quiz..."):
-                questions = make_quiz(client, st.session_state.notes, count, language, st.session_state.log)
-                good_questions, problems = validate_quiz(questions)
-                st.session_state.quiz = good_questions
-                st.session_state.quiz_problems = problems
+            try:
+                with st.spinner("Making quiz..."):
+                    questions = make_quiz(client, st.session_state.notes, count, language, st.session_state.log)
+                    good_questions, problems = validate_quiz(questions)
+                    st.session_state.quiz = good_questions
+                    st.session_state.quiz_problems = problems
+            except Exception as e:
+                st.error(friendly_error(e))
+                return
+            st.rerun()
+        return
+
+    # 2. Warning if some questions were dropped
+    if st.session_state.quiz_problems:
+        st.warning(f"{len(st.session_state.quiz_problems)} question(s) were dropped because they were broken.")
+
+    # 3. The form
+    with st.form("quiz_form"):
+        for i, q in enumerate(quiz):
             st.rerun()
         return
 

@@ -68,15 +68,12 @@ def friendly_error(error):
     msg = str(error).lower()
 
     if "429" in msg or "quota" in msg or "resource_exhausted" in msg:
-        return "Too many requests. Wait a minute and  try again."
-    
+        return "Too many requests. Wait a minute and try again."
 
+    if "private" in msg or "unlisted" in msg or "permission" in msg or "not found" in msg or "400" in msg:
+        return "Couldn't read this video. Make sure it's a public YouTube video."
 
-
-
-
-
-
+    return "Something went wrong: " + str(error)
 
 
 
