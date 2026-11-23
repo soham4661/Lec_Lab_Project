@@ -75,7 +75,18 @@ def friendly_error(error):
 
     return "Something went wrong: " + str(error)
 
+#Phase 7
+def summarize_log(log):
+    total_call = len(log)
+    total_tokens = 0
+    total_seconds = 0
 
+    for entry in log:
+        total_tokens = total_tokens + entry["input_tokens"] + entry["output_tokens"]
+        total_seconds = total_seconds + entry["seconds"]
+
+    total_seconds = round(total_seconds,2)
+    return total_call, total_tokens, total_seconds
 
 
 

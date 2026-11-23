@@ -3,7 +3,7 @@ from Training_Python_Beginner.Lec_Labs_prj.temp import retake_quiz
 import streamlit as st
 from config import languages,levels
 from gemini_client import get_client, extract_notes, make_flashcards, make_quiz
-from helpers import grade_quiz, youtube_id, validate_quiz
+from helpers import grade_quiz, summarize_log, youtube_id, validate_quiz
 from config import FLASHCARD_PROMPT, FLASHCARD_SCHEMA, MODEL, NOTES_PROMPT, NOTES_SCHEMA
 
 Defaults = {
@@ -383,6 +383,26 @@ def show_quiz_tab(client, count, language):
         st.metric("Score", f"{score} / {len(quiz)} · {percent}%")
         st.button("Retake quiz", on_click=retake_quiz)
 
+#Tokkens usage code
+def show_usage_tab():
+    log = st.session_state.log
+
+    if not log:
+        st.info("No AI calls yet.")
+        return
+
+    total_calls, total_tokens, total_seconds = summarize_log(log)
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("API calls", total_calls)
+    col2.metric("Total tokens", total_tokens)
+    col3.metric("Total time (s)", total_seconds)
+
+    rows = []
+    for entry in log:
+        cost = entry["input_tokens"] * 0.001 + entry["output_tokens"] * 0.002
+        rows.append({**entry, "cost": round(cost, 2)})
+    st.dataframe(rows)
 
 #Main APP Code.
 st.set_page_config(page_title="LectureLab", page_icon="🎓", layout="wide")
@@ -413,9 +433,9 @@ else:
     with tab1:
         show_flashcards_tab(client, flashcard_count, language)
     with tab2:
-        st.write("Coming soon")
+        show_quiz_tab(client, quiz_count, language)
     with tab3:
-        st.write("Coming soon")
+        show_usage_tab()
 
 
 

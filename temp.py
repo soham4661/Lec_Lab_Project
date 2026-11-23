@@ -1,7 +1,7 @@
 import streamlit as st
 from config import languages,levels
 from gemini_client import get_client, extract_notes, make_flashcards, make_quiz
-from helpers import grade_quiz, youtube_id, validate_quiz, friendly_error
+from helpers import grade_quiz, summarize_log, youtube_id, validate_quiz, friendly_error
 
 Defaults = {
     "link": None,
@@ -296,7 +296,7 @@ def show_input_screen(client, level, language):
             return
         st.rerun()
 
-
+# Flashcard code
 def show_flashcards_tab(client, count, language):
     cards = st.session_state.cards
 
@@ -333,6 +333,7 @@ def show_flashcards_tab(client, count, language):
     with col2:
         st.button("Next", on_click=next_card)
 
+#Quiz code:
 def show_quiz_tab(client, count, language):
     quiz = st.session_state.quiz
 
@@ -391,6 +392,23 @@ def show_quiz_tab(client, count, language):
         st.metric("Score", f"{score} / {len(quiz)} · {percent}%")
         st.button("Retake quiz", on_click=retake_quiz)
 
+#Tokkens usage code
+def show_usage_tab():
+    log = st.session_state.log
+
+    if not log:
+        st.info("No AI calls yet.")
+        return
+
+    total_calls, total_tokens, total_seconds = summarize_log(log)
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("API calls", total_calls)
+    col2.metric("Total tokens", total_tokens)
+    col3.metric("Total time (s)", total_seconds)
+
+    st.dataframe(log)
+
     
 #Main APP Code.
 st.set_page_config(page_title="LectureLab", page_icon="🎓", layout="wide")
@@ -421,9 +439,9 @@ else:
     with tab1:
         show_flashcards_tab(client, flashcard_count, language)
     with tab2:
-        st.write("Coming soon")
+        show_quiz_tab(client, quiz_count, language)
     with tab3:
-        st.write("Coming soon")
+        show_usage_tab()
 
 
 
