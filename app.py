@@ -57,7 +57,7 @@ st.set_page_config(
 init_state()
 client = get_client()
 
-# 2 Theme and styling: 
+# 2 Theme and styling:-  
 st.markdown(
     """
     <style>

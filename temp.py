@@ -59,7 +59,7 @@ st.set_page_config(
 init_state()
 client = get_client()
 
-# 2 Theme and styling of app
+# 2 Theme and styling of app:-
 
 st.markdown(
     """
